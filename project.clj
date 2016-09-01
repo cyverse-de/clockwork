@@ -39,8 +39,12 @@
                  [org.iplantc/service-logging "5.2.8.0"]
                  [me.raynes/fs "1.4.6"]
                  [slingshot "0.10.3"]]
+  :eastwood {:exclude-namespaces [apps.protocols :test-paths]
+             :linters [:wrong-arity :wrong-ns-form :wrong-pre-post :wrong-tag :misplaced-docstrings]}
   :profiles {:dev     {:resource-paths ["resources/test"]}
+             :test    {:resource-paths ["resources/test"]}
              :uberjar {:aot :all}}
   :main ^:skip-aot clockwork.core
-  :plugins [[test2junit "1.1.3"]]
+  :plugins [[jonase/eastwood "0.2.3"]
+            [test2junit "1.1.3"]]
   :uberjar-exclusions [#"BCKEY.SF"])
