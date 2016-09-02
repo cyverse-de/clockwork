@@ -16,90 +16,90 @@
   "A ref for storing the symbols used to get configuration settings."
   (ref []))
 
-(cc/defprop-str irods-host
+(cc/defprop-optstr irods-host
   "The host name or IP address to use when connecting to iRODS."
   [props config-valid configs]
-  "clockwork.irods-host")
+  "clockwork.irods-host" "irods")
 
-(cc/defprop-str irods-port
+(cc/defprop-optstr irods-port
   "The port number to use when connecting to iRODS."
   [props config-valid configs]
-  "clockwork.irods-port")
+  "clockwork.irods-port" "1247")
 
-(cc/defprop-str irods-user
+(cc/defprop-optstr irods-user
   "The username to use when authenticating to iRODS."
   [props config-valid configs]
-  "clockwork.irods-user")
+  "clockwork.irods-user" "rods")
 
-(cc/defprop-str irods-password
+(cc/defprop-optstr irods-password
   "The password t use when authenticating to iRODS."
   [props config-valid configs]
-  "clockwork.irods-password")
+  "clockwork.irods-password" "notprod")
 
-(cc/defprop-str irods-home
+(cc/defprop-optstr irods-home
   "The base path to the directory containing the home directories in iRODS."
   [props config-valid configs]
-  "clockwork.irods-home")
+  "clockwork.irods-home" "/iplant/home")
 
-(cc/defprop-str irods-zone
+(cc/defprop-optstr irods-zone
   "The name of the iRODS zone."
   [props config-valid configs]
-  "clockwork.irods-zone")
+  "clockwork.irods-zone" "iplant")
 
 (cc/defprop-optstr irods-resource
   "The name of the default resource to use in iRODS."
   [props config-valid configs]
-  "clockwork.irods-resource")
+  "clockwork.irods-resource" "")
 
-(cc/defprop-str notification-cleanup-start
+(cc/defprop-optstr notification-cleanup-start
   "The start time for the notification cleanup job."
   [props config-valid configs]
-  "clockwork.notifications.cleanup-start")
+  "clockwork.notifications.cleanup-start" "1:45:00")
 
-(cc/defprop-int notification-cleanup-age
+(cc/defprop-optint notification-cleanup-age
   "The minimum age of a notification in days before it's eligible for cleanup."
   [props config-valid configs]
-  "clockwork.notifications.cleanup-age")
+  "clockwork.notifications.cleanup-age" 90)
 
 (cc/defprop-optboolean notification-cleanup-enabled
   "Indicates whether notification cleanup tasks are enabled."
   [props config-valid configs]
-  "clockwork.notifications.cleanup-enable")
+  "clockwork.notifications.cleanup-enable" true)
 
-(cc/defprop-str notification-db-driver-class
+(cc/defprop-optstr notification-db-driver-class
   "The name of the JDBC driver to use."
   [props config-valid configs]
-  "clockwork.notifications.db.driver" )
+  "clockwork.notifications.db.driver" "org.postgresql.Driver")
 
-(cc/defprop-str notification-db-subprotocol
+(cc/defprop-optstr notification-db-subprotocol
   "The subprotocol to use when connecting to the database (e.g. postgresql)."
   [props config-valid configs]
-  "clockwork.notifications.db.subprotocol")
+  "clockwork.notifications.db.subprotocol" "postgresql")
 
-(cc/defprop-str notification-db-host
+(cc/defprop-optstr notification-db-host
   "The host name or IP address to use when connecting to the database."
   [props config-valid configs]
-  "clockwork.notifications.db.host")
+  "clockwork.notifications.db.host" "dedb")
 
-(cc/defprop-str notification-db-port
+(cc/defprop-optstr notification-db-port
   "The port number to use when connecting to the database."
   [props config-valid configs]
-  "clockwork.notifications.db.port")
+  "clockwork.notifications.db.port" "5432")
 
-(cc/defprop-str notification-db-name
+(cc/defprop-optstr notification-db-name
   "The name of the database to connect to."
   [props config-valid configs]
-  "clockwork.notifications.db.name")
+  "clockwork.notifications.db.name" "notifications")
 
-(cc/defprop-str notification-db-user
+(cc/defprop-optstr notification-db-user
   "The username to use when authenticating to the database."
   [props config-valid configs]
-  "clockwork.notifications.db.user")
+  "clockwork.notifications.db.user" "de")
 
-(cc/defprop-str notification-db-password
+(cc/defprop-optstr notification-db-password
   "The password to use when authenticating to the database."
   [props config-valid configs]
-  "clockwork.notifications.db.password")
+  "clockwork.notifications.db.password" "notprod")
 
 (defn- validate-config
   "Validates the configuration settings after they've been loaded."
