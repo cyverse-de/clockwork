@@ -7,9 +7,9 @@
       (string/trim (:out (sh "git" "rev-parse" "HEAD")))
       ""))
 
-(defproject org.iplantc/clockwork "5.2.8.0"
-  :description "Scheduled jobs for the iPlant Discovery Environment"
-  :url "https://github.com/iPlantCollaborativeOpenSource/DE"
+(defproject org.cyverse/clockwork "2.8.1-SNAPSHOT"
+  :description "Scheduled jobs for the CyVerse Discovery Environment"
+  :url "https://github.com/cyverse-de/clockwork"
   :license {:name "BSD"
             :url "http://iplantcollaborative.org/sites/default/files/iPLANT-LICENSE.txt"}
   :manifest {"Git-Ref" ~(git-ref)}
@@ -30,13 +30,13 @@
                  [com.mchange/c3p0 "0.9.5.1"]
                  [korma "0.3.0-RC5"
                   :exclusions [c3p0]]
-                 [org.iplantc/clj-jargon "5.2.8.0"
+                 [org.cyverse/clj-jargon "2.8.0"
                    :exclusions [[org.slf4j/slf4j-log4j12]
                                 [log4j]]]
-                 [org.iplantc/clojure-commons "5.2.8.0"]
-                 [org.iplantc/common-cli "5.2.8.0"]
-                 [org.iplantc/kameleon "5.2.8.0"]
-                 [org.iplantc/service-logging "5.2.8.0"]
+                 [org.cyverse/clojure-commons "2.8.0"]
+                 [org.cyverse/common-cli "2.8.0"]
+                 [org.cyverse/kameleon "2.8.0"]
+                 [org.cyverse/service-logging "2.8.0"]
                  [me.raynes/fs "1.4.6"]
                  [slingshot "0.10.3"]]
   :eastwood {:exclude-namespaces [apps.protocols :test-paths]
