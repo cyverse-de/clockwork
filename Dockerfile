@@ -16,7 +16,7 @@ RUN apk add --update git && \
     rm -rf /var/cache/apk
 
 RUN lein uberjar && \
-    cp target/anon-files-standalone.jar .
+    cp target/clockwork-standalone.jar .
 
 RUN ln -s "/usr/bin/java" "/bin/clockwork"
 
