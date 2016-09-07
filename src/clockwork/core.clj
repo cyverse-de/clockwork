@@ -75,7 +75,7 @@
 (def svc-info
   {:desc "Scheduled jobs for the iPlant Discovery Environment"
    :app-name "clockwork"
-   :group-id "org.iplantc"
+   :group-id "org.cyverse"
    :art-id "clockwork"
    :service "clockwork"})
 
