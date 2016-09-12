@@ -30,9 +30,6 @@
                  [com.mchange/c3p0 "0.9.5.1"]
                  [korma "0.3.0-RC5"
                   :exclusions [c3p0]]
-                 [org.cyverse/clj-jargon "2.8.0"
-                   :exclusions [[org.slf4j/slf4j-log4j12]
-                                [log4j]]]
                  [org.cyverse/clojure-commons "2.8.0"]
                  [org.cyverse/common-cli "2.8.0"]
                  [org.cyverse/kameleon "2.8.0"]
