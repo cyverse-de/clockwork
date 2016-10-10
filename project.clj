@@ -28,10 +28,12 @@
                    :exclusions [c3p0]]
                  [com.cemerick/url "0.0.7"]
                  [com.mchange/c3p0 "0.9.5.1"]
+                 [com.novemberain/langohr "3.5.1"]
                  [korma "0.3.0-RC5"
                   :exclusions [c3p0]]
                  [org.cyverse/clojure-commons "2.8.0"]
                  [org.cyverse/common-cli "2.8.0"]
+                 [org.cyverse/event-messages "0.0.1"]
                  [org.cyverse/kameleon "2.8.0"]
                  [org.cyverse/service-logging "2.8.0"]
                  [me.raynes/fs "1.4.6"]
