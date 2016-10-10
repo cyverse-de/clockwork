@@ -9,7 +9,6 @@
 (defn exchange-config
   []
   {:name        (config/exchange-name)
-   :type        (config/exchange-type)
    :durable     (config/exchange-durable?)
    :auto-delete (config/exchange-auto-delete?)})
 

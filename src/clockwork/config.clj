@@ -110,11 +110,6 @@
   [props config-valid configs]
   "clockwork.amqp.exchange.name" "de")
 
-(cc/defprop-optstr exchange-type
-  "The type of AMQP exchange clockwork will be connecting to."
-  [props config-valid configs]
-  "clockwork.amqp.exchange.type" "topic")
-
 (cc/defprop-optboolean exchange-durable?
   "Whether or not the AMQP exchange is durable."
   [props config-valid configs]
