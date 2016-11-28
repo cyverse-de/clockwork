@@ -7,7 +7,7 @@
       (string/trim (:out (sh "git" "rev-parse" "HEAD")))
       ""))
 
-(defproject org.cyverse/clockwork "2.8.1-SNAPSHOT"
+(defproject org.cyverse/clockwork "2.10.0-SNAPSHOT"
   :description "Scheduled jobs for the CyVerse Discovery Environment"
   :url "https://github.com/cyverse-de/clockwork"
   :license {:name "BSD"
