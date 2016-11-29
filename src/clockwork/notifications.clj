@@ -1,8 +1,7 @@
 (ns clockwork.notifications
   (:use [clj-time.core :only [days minus now]]
-        [korma.core]
-        [korma.db]
-        [kameleon.notification-entities])
+        [korma.core :exclude [update]]
+        [korma.db])
   (:require [clockwork.config :as config]
             [clojure.java.jdbc :as jdbc]
             [clojure.tools.logging :as log])
@@ -50,7 +49,7 @@
 (defn- delete-notifications
   "Removes old notifications from the database."
   [cleanup-age]
-  (delete notifications
+  (delete :notifications
           (where {:date_created [< cleanup-age]})))
 
 (defn clean-up-old-notifications
