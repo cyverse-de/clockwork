@@ -4,18 +4,7 @@ Scheduled jobs for the iPlant Discovery Environment.
 
 ## Build
 
-Periodically -- as in once a day or so -- run the following command from the top-level of the backend checkout:
-
-    > docker run --rm -it -v ~/.m2/:/root/.m2/ -v $(pwd):/build -w /build discoenv/buildenv lein exec build-all.clj lein-plugins libs
-
-That will build the latest version of all of the libraries for the backend and place them into your local .m2 directory. As annoying as that is to type, it's still less annoying than trying to get a full development environment set up on your local box.
-
-To build a new version of anon-files run the following inside the services/anon-files/ directory of the checkout (which contains this file):
-
-    > docker run --rm -v ~/.m2/:/root/.m2/ -v $(pwd):/build -w /build discoenv/buildenv lein uberjar
-    > docker build -t discoenv/clockwork:dev .
-
-The build of the uberjar is separate from the build of the container image to keep the size of the container image a bit more reasonable.
+```docker build --rm -t discoenv/clockwork:dev .```
 
 ## Usage
 
