@@ -26,7 +26,6 @@
                  [clj-time "0.4.5"]
                  [clojurewerkz/quartzite "1.0.1"
                    :exclusions [c3p0]]
-                 [com.cemerick/url "0.0.7"]
                  [com.mchange/c3p0 "0.9.5.1"]
                  [com.novemberain/langohr "3.5.1"]
                  [korma "0.3.0-RC5"
