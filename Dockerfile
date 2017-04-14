@@ -1,5 +1,9 @@
 FROM discoenv/clojure-base:master
 
+ENV CONF_TEMPLATE=/usr/src/app/clockwork.properties.tmpl
+ENV CONF_FILENAME=clockwork.properties
+ENV PROGRAM=clockwork
+
 VOLUME ["/etc/iplant/de"]
 
 COPY project.clj /usr/src/app/
@@ -13,8 +17,7 @@ RUN lein uberjar && \
 
 RUN ln -s "/usr/bin/java" "/bin/clockwork"
 
-ENTRYPOINT ["clockwork", "-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml", "-cp", ".:clockwork-standalone.jar", "clockwork.core"]
-CMD ["--help"]
+ENTRYPOINT ["run-service", "-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml", "-cp", ".:clockwork-standalone.jar", "clockwork.core"]
 
 ARG git_commit=unknown
 ARG version=unknown

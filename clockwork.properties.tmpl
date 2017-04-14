@@ -1,0 +1,24 @@
+{{- with $base := (printf "configs/%s" (env "DE_ENV")) -}}
+{{ with $v := (key (printf "%s/tree-urls/cleanup/age" $base)) }}clockwork.tree-urls-cleanup-age = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/tree-urls/cleanup/start" $base)) }}clockwork.tree-urls-cleanup-start = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/tree-urls/cleanup/enable" $base)) }}clockwork.tree-urls-cleanup-enable = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/tree-urls/cleanup/avu" $base)) }}clockwork.tree-urls-avu = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/host" $base)) }}clockwork.irods-host = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/port" $base)) }}clockwork.irods-port = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/user" $base)) }}clockwork.irods-user = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/pass" $base)) }}clockwork.irods-password = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/home" $base)) }}clockwork.irods-home = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/zone" $base)) }}clockwork.irods-zone = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/irods/resc" $base)) }}clockwork.irods-resource = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/notification-agent/clean/start" $base)) }}clockwork.notifications.cleanup-start = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/notification-agent/clean/age" $base)) }}clockwork.notifications.cleanup-age = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/notification-agent/clean/enable" $base)) }}clockwork.notifications.cleanup-enable = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/db/notifications/driver" $base)) }}clockwork.notifications.db.driver = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/db/notifications/subprotocol" $base)) }}clockwork.notifications.db.subprotocol = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/db/notifications/host" $base)) }}clockwork.notifications.db.host = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/db/notifications/port" $base)) }}clockwork.notifications.db.port = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/db/notifications/name" $base)) }}clockwork.notifications.db.name = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/db/notifications/user" $base)) }}clockwork.notifications.db.user = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/db/notifications/pass" $base)) }}clockwork.notifications.db.password = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/amqp/uri" $base)) }}clockwork.amqp.uri = {{ $v }}{{ end }}
+{{- end -}}
