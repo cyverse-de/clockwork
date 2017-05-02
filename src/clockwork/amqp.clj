@@ -45,3 +45,19 @@
     (lc/blocking-subscribe channel (:name queue-cfg) (partial message-router handlers))
     connection))
 
+(defn publish-msg
+  [routing-key msg]
+  (try+
+    (let [timeNow (new java.util.Date)
+          channel (lch/open (connection))]
+      (log/info (format "Publishing AMQP message. routing-key=%s" routing-key))
+      (lb/publish channel
+                  (config/exchange-name)
+                  routing-key
+                  (cheshire/encode {:message      msg
+                                    :timestamp_ms (.getTime timeNow)})
+                  {:content-type "application/json"
+                   :timestamp    timeNow})
+      (lch/close channel))
+    (catch Object _
+      (log/error (:throwable &throw-context) "Failed to publish message" (cheshire/encode msg)))))
