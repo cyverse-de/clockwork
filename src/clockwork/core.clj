@@ -2,18 +2,16 @@
   (:gen-class)
   (:use [slingshot.slingshot :only [try+]])
   (:require [clojure.tools.logging :as log]
-            [clojure.tools.cli :as cli]
             [clojure.string :as string]
-            [clojure-commons.error-codes :as ce]
             [clockwork.amqp :as amqp]
             [clockwork.config :as config]
             [clockwork.events :as events]
             [clockwork.notifications :as cn]
             [clojurewerkz.quartzite.jobs :as qj]
-            [clojurewerkz.quartzite.schedule.cron :as qsc]
-            [clojurewerkz.quartzite.schedule.simple :as qss]
             [clojurewerkz.quartzite.scheduler :as qs]
             [clojurewerkz.quartzite.triggers :as qt]
+            [clojurewerkz.quartzite.schedule.cron :as qsc]
+            [clojurewerkz.quartzite.schedule.daily-interval :as qdi]
             [common-cli.core :as ccli]
             [me.raynes.fs :as fs]
             [service-logging.thread-context :as tc]))
@@ -66,13 +64,34 @@
   ([]
      (apply schedule-notification-cleanup-job (notification-cleanup-start))))
 
+(qj/defjob infosquito-indexing
+  [ctx]
+  (amqp/publish-msg "index.all" "Sent by clockwork"))
+
+(defn- schedule-infosquito-indexing
+  ""
+  []
+    (let [basename (config/infosquito-job-basename)
+           job     (qj/build
+                    (qj/of-type infosquito-indexing)
+                    (qj/with-identity (qj/key (job-name basename))))
+           trigger (qt/build
+                    (qt/with-identity (qt/key (trigger-name basename)))
+                    (qt/with-schedule (qdi/schedule
+                                        (qdi/on-days-of-the-week #{1})
+                                        (qdi/ignore-misfires))))]
+       (qs/schedule job trigger)
+       (log/debug (qs/get-trigger (trigger-name basename)))))
+
 (defn- init-scheduler
   "Initializes the scheduler."
   []
   (qs/initialize)
   (qs/start)
   (when (config/notification-cleanup-enabled)
-    (schedule-notification-cleanup-job)))
+    (schedule-notification-cleanup-job))
+  (when (config/infosquito-indexing-enabled)
+    (schedule-infosquito-indexing)))
 
 (def svc-info
   {:desc "Scheduled jobs for the iPlant Discovery Environment"
