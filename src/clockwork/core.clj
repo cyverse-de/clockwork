@@ -91,8 +91,11 @@
 (defn listen-for-events
   []
   (let [exchange-cfg (events/exchange-config)
-        queue-cfg    (events/queue-config)]
-    (amqp/connect exchange-cfg queue-cfg {"events.clockwork.ping" events/ping-handler})))
+        queue-cfg    (events/queue-config)
+        connection   (amqp/connect exchange-cfg
+                                   queue-cfg
+                                   {"events.clockwork.ping" events/ping-handler})]
+    (amqp/connection connection)))
 
 (defn -main
   [& args]

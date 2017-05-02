@@ -1,11 +1,22 @@
 (ns clockwork.amqp
+  (:use [slingshot.slingshot :only [try+]])
   (:require [clojure.tools.logging :as log]
             [clockwork.config :as config]
             [langohr.core :as rmq]
             [langohr.channel :as lch]
             [langohr.queue :as lq]
             [langohr.consumers :as lc]
-            [langohr.exchange :as le]))
+            [langohr.exchange :as le]
+            [langohr.basic :as lb]
+            [cheshire.core :as cheshire]))
+
+(def local-connection (ref nil))
+
+(defn connection
+  ([]
+   (deref local-connection))
+  ([val]
+   (dosync (ref-set local-connection val))))
 
 (defn- declare-queue
   [channel {exchange-name :name} queue-cfg topics]
@@ -26,8 +37,11 @@
 
 (defn connect
   [exchange-cfg queue-cfg handlers]
-  (let [channel (lch/open (rmq/connect {:uri (config/amqp-uri)}))]
+  (let [connection (rmq/connect {:uri (config/amqp-uri)})
+        channel (lch/open connection)]
     (log/info (format "[amqp/connect] [%s]" (config/amqp-uri)))
     (declare-exchange channel exchange-cfg)
     (declare-queue channel exchange-cfg queue-cfg (keys handlers))
-    (lc/blocking-subscribe channel (:name queue-cfg) (partial message-router handlers))))
+    (lc/blocking-subscribe channel (:name queue-cfg) (partial message-router handlers))
+    connection))
+
