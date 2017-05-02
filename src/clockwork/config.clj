@@ -65,6 +65,16 @@
   [props config-valid configs]
   "clockwork.notifications.cleanup-enable" true)
 
+(cc/defprop-optstr infosquito-job-basename
+  "Basename of infosquito indexing task."
+  [props config-valid configs]
+  "clockwork.jobs.infosquito.basename" "indexing.1")
+
+(cc/defprop-optboolean infosquito-indexing-enabled
+  "Indicates whether infosquito indexing tasks are enabled."
+  [props config-valid configs]
+  "clockwork.jobs.infosquito.indexing-enabled" true)
+
 (cc/defprop-optstr notification-db-driver-class
   "The name of the JDBC driver to use."
   [props config-valid configs]
