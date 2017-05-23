@@ -45,4 +45,5 @@
   :main ^:skip-aot clockwork.core
   :plugins [[jonase/eastwood "0.2.3"]
             [test2junit "1.1.3"]]
-  :uberjar-exclusions [#"BCKEY.SF"])
+  :uberjar-exclusions [#"BCKEY.SF"]
+  :jvm-opts ["-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml"])
