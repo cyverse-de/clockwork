@@ -10,14 +10,6 @@
             [langohr.basic :as lb]
             [cheshire.core :as cheshire]))
 
-(def local-connection (ref nil))
-
-(defn connection
-  ([]
-   (deref local-connection))
-  ([val]
-   (dosync (ref-set local-connection val))))
-
 (defn- declare-queue
   [channel {exchange-name :name} queue-cfg topics]
   (lq/declare channel (:name queue-cfg) (assoc queue-cfg :exclusive false))
@@ -49,8 +41,8 @@
   [routing-key msg]
   (try+
     (let [timeNow (new java.util.Date)
-          channel (lch/open (connection))]
-      (log/info (format "Publishing AMQP message. routing-key=%s" routing-key))
+          connection (rmq/connect {:uri (config/amqp-uri)})
+          channel (lch/open connection)]
       (lb/publish channel
                   (config/exchange-name)
                   routing-key

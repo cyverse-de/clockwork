@@ -114,7 +114,7 @@
         connection   (amqp/connect exchange-cfg
                                    queue-cfg
                                    {"events.clockwork.ping" events/ping-handler})]
-    (amqp/connection connection)))
+    connection))
 
 (defn -main
   [& args]
