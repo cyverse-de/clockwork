@@ -78,7 +78,7 @@
            trigger (qt/build
                     (qt/with-identity (qt/key (trigger-name basename)))
                     (qt/with-schedule (qdi/schedule
-                                        (qdi/on-days-of-the-week #{(int 1)})
+                                        (qdi/on-days-of-the-week #{(config/infosquito-job-daynum)})
                                         (qdi/ignore-misfires))))]
        (qs/schedule job trigger)
        (log/debug (qs/get-trigger (trigger-name basename)))))
@@ -114,7 +114,7 @@
         connection   (amqp/connect exchange-cfg
                                    queue-cfg
                                    {"events.clockwork.ping" events/ping-handler})]
-    (amqp/connection connection)))
+    connection))
 
 (defn -main
   [& args]

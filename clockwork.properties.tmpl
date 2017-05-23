@@ -23,4 +23,5 @@
 {{ with $v := (key (printf "%s/amqp/uri" $base)) }}clockwork.amqp.uri = {{ $v }}{{ end }}
 {{ with $v := (key (printf "%s/infosquito/job-indexing-enabled" $base)) }}clockwork.jobs.infosquito.indexing-enabled = {{ $v }}{{ end }}
 {{ with $v := (key (printf "%s/infosquito/job-basename" $base)) }}clockwork.jobs.infosquito.basename = {{ $v }}{{ end }}
+{{ with $v := (key (printf "%s/infosquito/job-daynum" $base)) }}clockwork.jobs.infosquito.daynum = {{ $v }}{{ end }}
 {{- end -}}

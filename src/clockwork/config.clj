@@ -70,6 +70,11 @@
   [props config-valid configs]
   "clockwork.jobs.infosquito.basename" "indexing.1")
 
+(cc/defprop-optint infosquito-job-daynum
+  "Numeric day of week [1-7] to run the weekly indexing task."
+  [props config-valid configs]
+  "clockwork.jobs.infosquito.daynum" 1)
+
 (cc/defprop-optboolean infosquito-indexing-enabled
   "Indicates whether infosquito indexing tasks are enabled."
   [props config-valid configs]

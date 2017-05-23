@@ -8,15 +8,8 @@
             [langohr.consumers :as lc]
             [langohr.exchange :as le]
             [langohr.basic :as lb]
+            [service-logging.thread-context :as tc]
             [cheshire.core :as cheshire]))
-
-(def local-connection (ref nil))
-
-(defn connection
-  ([]
-   (deref local-connection))
-  ([val]
-   (dosync (ref-set local-connection val))))
 
 (defn- declare-queue
   [channel {exchange-name :name} queue-cfg topics]
@@ -49,8 +42,12 @@
   [routing-key msg]
   (try+
     (let [timeNow (new java.util.Date)
-          channel (lch/open (connection))]
-      (log/info (format "Publishing AMQP message. routing-key=%s" routing-key))
+          connection (rmq/connect {:uri (config/amqp-uri)})
+          channel (lch/open connection)]
+      (tc/with-logging-context
+        {:amqp-routing-key routing-key
+         :amqp-message msg}
+        (log/info (format "Publishing AMQP message. routing-key=%s" routing-key)))
       (lb/publish channel
                   (config/exchange-name)
                   routing-key
@@ -58,6 +55,8 @@
                                     :timestamp_ms (.getTime timeNow)})
                   {:content-type "application/json"
                    :timestamp    timeNow})
-      (lch/close channel))
+
+      (lch/close channel)
+      (rmq/close connection))
     (catch Object _
       (log/error (:throwable &throw-context) "Failed to publish message" (cheshire/encode msg)))))

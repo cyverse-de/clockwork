@@ -29,6 +29,8 @@
     (is (= (config/notification-db-name) "notifications"))
     (is (= (config/notification-db-user) "de"))
     (is (= (config/notification-db-password) "notprod"))
+    (is (= (config/infosquito-job-basename) "indexing.1"))
+    (is (= (config/infosquito-job-daynum) 1))
     (is (= (config/amqp-uri) "amqp://guest:guest@rabbit:5672/"))
     (is (= (config/exchange-name) "de"))
     (is (true? (config/exchange-durable?)))
