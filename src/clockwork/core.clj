@@ -11,7 +11,6 @@
             [clojurewerkz.quartzite.scheduler :as qs]
             [clojurewerkz.quartzite.triggers :as qt]
             [clojurewerkz.quartzite.schedule.cron :as qsc]
-            [clojurewerkz.quartzite.schedule.daily-interval :as qdi]
             [common-cli.core :as ccli]
             [me.raynes.fs :as fs]
             [service-logging.thread-context :as tc]))
@@ -77,9 +76,9 @@
                     (qj/with-identity (qj/key (job-name basename))))
            trigger (qt/build
                     (qt/with-identity (qt/key (trigger-name basename)))
-                    (qt/with-schedule (qdi/schedule
-                                        (qdi/on-days-of-the-week #{(config/infosquito-job-daynum)})
-                                        (qdi/ignore-misfires))))]
+                    (qt/with-schedule (qsc/schedule
+                                        (qsc/weekly-on-day-and-hour-and-minute (config/infosquito-job-daynum) 23 0)
+                                        (qsc/ignore-misfires))))]
        (qs/schedule job trigger)
        (log/debug (qs/get-trigger (trigger-name basename)))))
 
