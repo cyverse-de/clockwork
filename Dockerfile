@@ -1,10 +1,10 @@
-FROM discoenv/clojure-base:master
+FROM clojure:lein-alpine
 
-ENV CONF_TEMPLATE=/usr/src/app/clockwork.properties.tmpl
-ENV CONF_FILENAME=clockwork.properties
-ENV PROGRAM=clockwork
+WORKDIR /usr/src/app
 
-VOLUME ["/etc/iplant/de"]
+RUN apk add --no-cache git
+
+RUN ln -s "/usr/bin/java" "/bin/clockwork"
 
 COPY project.clj /usr/src/app/
 RUN lein deps
@@ -15,9 +15,8 @@ COPY . /usr/src/app
 RUN lein uberjar && \
     cp target/clockwork-standalone.jar .
 
-RUN ln -s "/usr/bin/java" "/bin/clockwork"
-
-ENTRYPOINT ["run-service", "-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml", "-cp", ".:clockwork-standalone.jar", "clockwork.core"]
+ENTRYPOINT ["clockwork", "-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml", "-cp", ".:clockwork-standalone.jar", "clockwork.core"]
+CMD ["--help"]
 
 ARG git_commit=unknown
 ARG version=unknown
