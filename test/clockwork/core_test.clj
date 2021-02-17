@@ -1,6 +1,5 @@
 (ns clockwork.core-test
-  (:use clojure.test
-        clockwork.core)
+  (:use clojure.test)
   (:require [clockwork.config :as config]))
 
 (defn with-empty-config [f]
@@ -19,16 +18,6 @@
     (is (= (config/irods-home) "/iplant/home"))
     (is (= (config/irods-zone) "iplant"))
     (is (= (config/irods-resource) ""))
-    (is (= (config/notification-cleanup-start) "1:45:00"))
-    (is (= (config/notification-cleanup-age) 90))
-    (is (true? (config/notification-cleanup-enabled)))
-    (is (= (config/notification-db-driver-class) "org.postgresql.Driver"))
-    (is (= (config/notification-db-subprotocol) "postgresql"))
-    (is (= (config/notification-db-host) "dedb"))
-    (is (= (config/notification-db-port) "5432"))
-    (is (= (config/notification-db-name) "notifications"))
-    (is (= (config/notification-db-user) "de"))
-    (is (= (config/notification-db-password) "notprod"))
     (is (= (config/infosquito-job-basename) "indexing.1"))
     (is (= (config/infosquito-job-daynum) 1))
     (is (= (config/amqp-uri) "amqp://guest:guest@rabbit:5672/"))
