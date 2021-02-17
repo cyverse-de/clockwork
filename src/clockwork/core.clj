@@ -6,7 +6,6 @@
             [clockwork.amqp :as amqp]
             [clockwork.config :as config]
             [clockwork.events :as events]
-            [clockwork.notifications :as cn]
             [clojurewerkz.quartzite.jobs :as qj]
             [clojurewerkz.quartzite.scheduler :as qs]
             [clojurewerkz.quartzite.triggers :as qt]
@@ -27,13 +26,6 @@
      (log/error error-message timestamp)
      (System/exit 1))))
 
-(defn- notification-cleanup-start
-  "The start time for the notification cleanup."
-  []
-  (split-timestamp
-   (config/notification-cleanup-start)
-   "Invalid notification cleanup start time:"))
-
 (defn- qualified-name
   "Creates a qualified name for a prefix and a given basename."
   [prefix base]
@@ -41,27 +33,6 @@
 
 (def ^:private job-name (partial qualified-name "jobs"))
 (def ^:private trigger-name (partial qualified-name "triggers"))
-
-(qj/defjob clean-up-old-notifications
-  [ctx]
-  (cn/clean-up-old-notifications))
-
-(defn- schedule-notification-cleanup-job
-  "Schedules the job to publish notification cleanup tasks."
-  ([hr min]
-     (let [basename "notification-cleanup.1"
-           job      (qj/build
-                     (qj/of-type clean-up-old-notifications)
-                     (qj/with-identity (qj/key (job-name basename))))
-           trigger  (qt/build
-                     (qt/with-identity (qt/key (trigger-name basename)))
-                     (qt/with-schedule (qsc/schedule
-                                        (qsc/daily-at-hour-and-minute hr min)
-                                        (qsc/ignore-misfires))))]
-       (qs/schedule job trigger)
-       (log/debug (qs/get-trigger (trigger-name basename)))))
-  ([]
-     (apply schedule-notification-cleanup-job (notification-cleanup-start))))
 
 (qj/defjob infosquito-indexing
   [ctx]
@@ -87,8 +58,6 @@
   []
   (qs/initialize)
   (qs/start)
-  (when (config/notification-cleanup-enabled)
-    (schedule-notification-cleanup-job))
   (when (config/infosquito-indexing-enabled)
     (schedule-infosquito-indexing)))
 

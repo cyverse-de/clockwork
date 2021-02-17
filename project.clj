@@ -14,9 +14,8 @@
             :url "http://iplantcollaborative.org/sites/default/files/iPLANT-LICENSE.txt"}
   :manifest {"Git-Ref" ~(git-ref)}
   :uberjar-name "clockwork-standalone.jar"
-  :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/java.jdbc "0.2.3"]
-                 [cheshire "5.5.0"
+  :dependencies [[org.clojure/clojure "1.10.2"]
+                 [cheshire "5.10.0"
                    :exclusions [[com.fasterxml.jackson.dataformat/jackson-dataformat-cbor]
                                 [com.fasterxml.jackson.dataformat/jackson-dataformat-smile]
                                 [com.fasterxml.jackson.core/jackson-annotations]
@@ -37,13 +36,12 @@
                  [org.cyverse/service-logging "2.8.0"]
                  [me.raynes/fs "1.4.6"]
                  [slingshot "0.10.3"]]
-  :eastwood {:exclude-namespaces [apps.protocols :test-paths]
-             :linters [:wrong-arity :wrong-ns-form :wrong-pre-post :wrong-tag :misplaced-docstrings]}
   :profiles {:dev     {:resource-paths ["resources/test"]}
              :test    {:resource-paths ["resources/test"]}
              :uberjar {:aot :all}}
   :main ^:skip-aot clockwork.core
-  :plugins [[jonase/eastwood "0.2.3"]
-            [test2junit "1.1.3"]]
+  :plugins [[jonase/eastwood "0.3.14"]
+            [lein-ancient "0.7.0"]
+            [test2junit "1.4.2"]]
   :uberjar-exclusions [#"BCKEY.SF"]
   :jvm-opts ["-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml"])

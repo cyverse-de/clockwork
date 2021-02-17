@@ -50,21 +50,6 @@
   [props config-valid configs]
   "clockwork.irods-resource" "")
 
-(cc/defprop-optstr notification-cleanup-start
-  "The start time for the notification cleanup job."
-  [props config-valid configs]
-  "clockwork.notifications.cleanup-start" "1:45:00")
-
-(cc/defprop-optint notification-cleanup-age
-  "The minimum age of a notification in days before it's eligible for cleanup."
-  [props config-valid configs]
-  "clockwork.notifications.cleanup-age" 90)
-
-(cc/defprop-optboolean notification-cleanup-enabled
-  "Indicates whether notification cleanup tasks are enabled."
-  [props config-valid configs]
-  "clockwork.notifications.cleanup-enable" true)
-
 (cc/defprop-optstr infosquito-job-basename
   "Basename of infosquito indexing task."
   [props config-valid configs]
@@ -79,41 +64,6 @@
   "Indicates whether infosquito indexing tasks are enabled."
   [props config-valid configs]
   "clockwork.jobs.infosquito.indexing-enabled" true)
-
-(cc/defprop-optstr notification-db-driver-class
-  "The name of the JDBC driver to use."
-  [props config-valid configs]
-  "clockwork.notifications.db.driver" "org.postgresql.Driver")
-
-(cc/defprop-optstr notification-db-subprotocol
-  "The subprotocol to use when connecting to the database (e.g. postgresql)."
-  [props config-valid configs]
-  "clockwork.notifications.db.subprotocol" "postgresql")
-
-(cc/defprop-optstr notification-db-host
-  "The host name or IP address to use when connecting to the database."
-  [props config-valid configs]
-  "clockwork.notifications.db.host" "dedb")
-
-(cc/defprop-optstr notification-db-port
-  "The port number to use when connecting to the database."
-  [props config-valid configs]
-  "clockwork.notifications.db.port" "5432")
-
-(cc/defprop-optstr notification-db-name
-  "The name of the database to connect to."
-  [props config-valid configs]
-  "clockwork.notifications.db.name" "notifications")
-
-(cc/defprop-optstr notification-db-user
-  "The username to use when authenticating to the database."
-  [props config-valid configs]
-  "clockwork.notifications.db.user" "de")
-
-(cc/defprop-optstr notification-db-password
-  "The password to use when authenticating to the database."
-  [props config-valid configs]
-  "clockwork.notifications.db.password" "notprod")
 
 (cc/defprop-optstr amqp-uri
   "The URI to use to establish AMQP connections."
