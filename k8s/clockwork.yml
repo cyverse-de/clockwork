@@ -40,7 +40,7 @@ spec:
                 path: clockwork.properties
       containers:
       - name: clockwork
-        image: discoenv/clockwork
+        image: harbor.cyverse.org/de/clockwork
         resources:
           requests:
             cpu: "10m"
