@@ -65,6 +65,21 @@
   [props config-valid configs]
   "clockwork.jobs.infosquito.indexing-enabled" true)
 
+(cc/defprop-optstr data-usage-api-job-basename
+  "Basename of data-usage-api indexing task."
+  [props config-valid configs]
+  "clockwork.jobs.data-usage-api.basename" "data-usage.1")
+
+(cc/defprop-optint data-usage-api-interval
+  "Numeric number of hours for the interval between data-usage-api indexing"
+  [props config-valid configs]
+  "clockwork.jobs.data-usage-api.interval" 3)
+
+(cc/defprop-optboolean data-usage-api-indexing-enabled
+  "Indicates whether data-usage-api indexing tasks are enabled."
+  [props config-valid configs]
+  "clockwork.jobs.data-usage-api.indexing-enabled" true)
+
 (cc/defprop-optstr amqp-uri
   "The URI to use to establish AMQP connections."
   [props config-valid configs]

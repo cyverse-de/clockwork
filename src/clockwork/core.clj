@@ -10,6 +10,7 @@
             [clojurewerkz.quartzite.scheduler :as qs]
             [clojurewerkz.quartzite.triggers :as qt]
             [clojurewerkz.quartzite.schedule.cron :as qsc]
+            [clojurewerkz.quartzite.schedule.calendar-interval :as qsci]
             [common-cli.core :as ccli]
             [me.raynes.fs :as fs]
             [service-logging.thread-context :as tc]))
@@ -53,13 +54,34 @@
        (qs/schedule job trigger)
        (log/debug (qs/get-trigger (trigger-name basename)))))
 
+(qj/defjob data-usage-api-updates
+  [ctx]
+  (amqp/publish-msg "index.usage.data" "Sent by clockwork"))
+
+(defn- schedule-data-usage-api
+  ""
+  []
+  (let [basename (config/data-usage-api-job-basename)
+        job      (qj/build
+                   (qj/of-type data-usage-api-updates)
+                   (qj/with-identity (qj/key (job-name basename))))
+        trigger  (qt/build
+                   (qt/with-identity (qt/key (trigger-name basename)))
+                   (qt/with-schedule (qsci/schedule
+                                       (qsci/with-interval-in-hours (config/data-usage-api-interval))
+                                       (qsci/ignore-misfires))))]
+    (qs/schedule job trigger)
+    (log/debug (qs/get-trigger (trigger-name basename)))))
+
 (defn- init-scheduler
   "Initializes the scheduler."
   []
   (qs/initialize)
   (qs/start)
   (when (config/infosquito-indexing-enabled)
-    (schedule-infosquito-indexing)))
+    (schedule-infosquito-indexing))
+  (when (config/data-usage-api-indexing-enabled)
+    (schedule-data-usage-api)))
 
 (def svc-info
   {:desc "Scheduled jobs for the iPlant Discovery Environment"
