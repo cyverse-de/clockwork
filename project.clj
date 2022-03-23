@@ -40,4 +40,4 @@
             [lein-ancient "0.7.0"]
             [test2junit "1.4.2"]]
   :uberjar-exclusions [#"BCKEY.SF"]
-  :jvm-opts ["-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml"])
+  :jvm-opts ["-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml" "-javaagent:./opentelemetry-javaagent.jar" "-Dotel.resource.attributes=service.name=clockwork"])

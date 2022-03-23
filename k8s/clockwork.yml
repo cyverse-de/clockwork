@@ -67,4 +67,14 @@ spec:
               configMapKeyRef:
                 name: java-tool-options
                 key: low
+          - name: OTEL_TRACES_EXPORTER
+            valueFrom:
+              secretKeyRef:
+                name: configs
+                key: OTEL_TRACES_EXPORTER
+          - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: configs
+                key: OTEL_EXPORTER_JAEGER_ENDPOINT
       restartPolicy: Always
