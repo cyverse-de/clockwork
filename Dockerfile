@@ -17,7 +17,7 @@ COPY . /usr/src/app
 RUN lein uberjar && \
     cp target/clockwork-standalone.jar .
 
-ENTRYPOINT ["clockwork", "-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml", "-javaagent:/usr/src/app/opentelemetry-javaagent.jar", "-Dotel.resource.attributes=service.name=clockwork", "-cp", ".:clockwork-standalone.jar", "clockwork.core"]
+ENTRYPOINT ["clockwork", "-Dorg.terracotta.quartz.skipUpdateCheck=true", "-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml", "-javaagent:/usr/src/app/opentelemetry-javaagent.jar", "-Dotel.resource.attributes=service.name=clockwork", "-cp", ".:clockwork-standalone.jar", "clockwork.core"]
 CMD ["--help"]
 
 ARG git_commit=unknown
