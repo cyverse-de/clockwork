@@ -23,7 +23,7 @@
                                 [com.fasterxml.jackson.core/jackson-core]]]
                  [clj-time "0.15.2"]
                  [clojurewerkz/quartzite "2.2.0"
-                   :exclusions [c3p0]]
+                   :exclusions [[c3p0] [org.slf4j/slf4j-api]]]
                  [com.mchange/c3p0 "0.10.1"]
                  [com.novemberain/langohr "3.5.1"]
                  [org.cyverse/clojure-commons "3.0.8"]

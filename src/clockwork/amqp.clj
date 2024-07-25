@@ -26,7 +26,7 @@
   (let [handler (get handlers routing-key)]
     (if-not (nil? handler)
       (handler channel metadata msg)
-      (log/error (format "[amqp/message-router] [%s] [%s] unroutable" routing-key (String. msg))))))
+      (log/error (format "[amqp/message-router] [%s] [%s] unroutable" routing-key (str msg))))))
 
 (defn connect
   [exchange-cfg queue-cfg handlers]
