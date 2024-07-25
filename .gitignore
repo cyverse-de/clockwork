@@ -19,3 +19,5 @@ pom.xml
 /bin
 build.xml
 test2junit
+.clj-kondo
+.lsp

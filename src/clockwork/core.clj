@@ -5,7 +5,6 @@
             [clojure.string :as string]
             [clockwork.amqp :as amqp]
             [clockwork.config :as config]
-            [clockwork.events :as events]
             [clojurewerkz.quartzite.jobs :as qj]
             [clojurewerkz.quartzite.scheduler :as qs]
             [clojurewerkz.quartzite.triggers :as qt]
@@ -97,15 +96,6 @@
    ["-v" "--version" "Print out the version number."]
    ["-h" "--help"]])
 
-(defn listen-for-events
-  []
-  (let [exchange-cfg (events/exchange-config)
-        queue-cfg    (events/queue-config)
-        connection   (amqp/connect exchange-cfg
-                                   queue-cfg
-                                   {"events.clockwork.ping" events/ping-handler})]
-    connection))
-
 (defn -main
   [& args]
   (tc/with-logging-context svc-info
@@ -116,5 +106,4 @@
         (ccli/exit 1 "The config file is not readable."))
       (log/info "clockwork startup")
       (config/load-config-from-file (:config options))
-      (.start (Thread. listen-for-events))
       (init-scheduler))))
