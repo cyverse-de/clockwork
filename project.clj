@@ -31,8 +31,7 @@
                  [org.cyverse/service-logging "2.8.4"]
                  [me.raynes/fs "1.4.6"]
                  [slingshot "0.12.2"]]
-  :profiles {:dev     {:resource-paths ["resources/test"]
-                       :jvm-opts       ["-Dotel.javaagent.enabled=false"]}
+  :profiles {:dev     {:resource-paths ["resources/test"]}
              :test    {:resource-paths ["resources/test"]}
              :uberjar {:aot :all}}
   :main ^:skip-aot clockwork.core
@@ -40,4 +39,4 @@
             [lein-ancient "0.7.0"]
             [test2junit "1.4.4"]]
   :uberjar-exclusions [#"BCKEY.SF"]
-  :jvm-opts ["-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml" "-javaagent:./opentelemetry-javaagent.jar" "-Dotel.resource.attributes=service.name=clockwork"])
+  :jvm-opts ["-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml"])
