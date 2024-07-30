@@ -5,7 +5,6 @@
             [clojure.string :as string]
             [clockwork.amqp :as amqp]
             [clockwork.config :as config]
-            [clockwork.events :as events]
             [clojurewerkz.quartzite.jobs :as qj]
             [clojurewerkz.quartzite.scheduler :as qs]
             [clojurewerkz.quartzite.triggers :as qt]
@@ -36,52 +35,51 @@
 (def ^:private trigger-name (partial qualified-name "triggers"))
 
 (qj/defjob infosquito-indexing
-  [ctx]
+  [_]
   (amqp/publish-msg "index.all" "Sent by clockwork"))
 
 (defn- schedule-infosquito-indexing
   ""
-  []
+  [s]
     (let [basename (config/infosquito-job-basename)
            job     (qj/build
-                    (qj/of-type infosquito-indexing)
-                    (qj/with-identity (qj/key (job-name basename))))
+                    (qj/of-type s infosquito-indexing)
+                    (qj/with-identity s (qj/key (job-name basename))))
            trigger (qt/build
-                    (qt/with-identity (qt/key (trigger-name basename)))
+                    (qt/with-identity s (qt/key (trigger-name basename)))
                     (qt/with-schedule (qsc/schedule
                                         (qsc/weekly-on-day-and-hour-and-minute (config/infosquito-job-daynum) 23 0)
-                                        (qsc/ignore-misfires))))]
-       (qs/schedule job trigger)
-       (log/debug (qs/get-trigger (trigger-name basename)))))
+                                        (qsc/ignore-misfires s))))]
+       (qs/schedule s job trigger)
+       (log/debug (qs/get-trigger s (trigger-name basename)))))
 
 (qj/defjob data-usage-api-updates
-  [ctx]
+  [_]
   (amqp/publish-msg "index.usage.data" "Sent by clockwork"))
 
 (defn- schedule-data-usage-api
   ""
-  []
+  [s]
   (let [basename (config/data-usage-api-job-basename)
         job      (qj/build
-                   (qj/of-type data-usage-api-updates)
-                   (qj/with-identity (qj/key (job-name basename))))
+                   (qj/of-type s data-usage-api-updates)
+                   (qj/with-identity s (qj/key (job-name basename))))
         trigger  (qt/build
-                   (qt/with-identity (qt/key (trigger-name basename)))
+                   (qt/with-identity s (qt/key (trigger-name basename)))
                    (qt/with-schedule (qsci/schedule
-                                       (qsci/with-interval-in-hours (config/data-usage-api-interval))
-                                       (qsci/ignore-misfires))))]
-    (qs/schedule job trigger)
-    (log/debug (qs/get-trigger (trigger-name basename)))))
+                                       (qsci/with-interval-in-hours s (config/data-usage-api-interval))
+                                       (qsci/ignore-misfires s))))]
+    (qs/schedule s job trigger)
+    (log/debug (qs/get-trigger s (trigger-name basename)))))
 
 (defn- init-scheduler
   "Initializes the scheduler."
   []
-  (qs/initialize)
-  (qs/start)
-  (when (config/infosquito-indexing-enabled)
-    (schedule-infosquito-indexing))
-  (when (config/data-usage-api-indexing-enabled)
-    (schedule-data-usage-api)))
+  (let [s (-> (qs/initialize) qs/start)]
+    (when (config/infosquito-indexing-enabled)
+      (schedule-infosquito-indexing s))
+    (when (config/data-usage-api-indexing-enabled)
+      (schedule-data-usage-api s))))
 
 (def svc-info
   {:desc "Scheduled jobs for the iPlant Discovery Environment"
@@ -97,15 +95,6 @@
    ["-v" "--version" "Print out the version number."]
    ["-h" "--help"]])
 
-(defn listen-for-events
-  []
-  (let [exchange-cfg (events/exchange-config)
-        queue-cfg    (events/queue-config)
-        connection   (amqp/connect exchange-cfg
-                                   queue-cfg
-                                   {"events.clockwork.ping" events/ping-handler})]
-    connection))
-
 (defn -main
   [& args]
   (tc/with-logging-context svc-info
@@ -116,5 +105,4 @@
         (ccli/exit 1 "The config file is not readable."))
       (log/info "clockwork startup")
       (config/load-config-from-file (:config options))
-      (.start (Thread. listen-for-events))
       (init-scheduler))))
