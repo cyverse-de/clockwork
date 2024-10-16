@@ -17,7 +17,7 @@ COPY . /usr/src/app
 RUN lein uberjar && \
     cp target/clockwork-standalone.jar .
 
-ENTRYPOINT ["clockwork", "-Dorg.terracotta.quartz.skipUpdateCheck=true", "-Dlogback.configurationFile=/etc/iplant/de/logging/clockwork-logging.xml", "-cp", ".:clockwork-standalone.jar", "clockwork.core"]
+ENTRYPOINT ["clockwork", "-Dorg.terracotta.quartz.skipUpdateCheck=true", "-Dlogback.configurationFile=/usr/src/app/logback.xml", "-cp", ".:clockwork-standalone.jar", "clockwork.core"]
 CMD ["--help"]
 
 ARG git_commit=unknown
