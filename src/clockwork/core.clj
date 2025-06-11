@@ -49,7 +49,7 @@
                     (qt/with-identity (qt/key (trigger-name basename)))
                     (qt/with-schedule (qsc/schedule
                                         (qsc/weekly-on-day-and-hour-and-minute (config/infosquito-job-daynum) 23 0)
-                                        (qsc/ignore-misfires s))))]
+                                        (qsc/ignore-misfires))))]
        (qs/schedule s job trigger)
        (log/debug (qs/get-trigger s (trigger-name basename)))))
 
@@ -67,8 +67,8 @@
         trigger  (qt/build
                    (qt/with-identity (qt/key (trigger-name basename)))
                    (qt/with-schedule (qsci/schedule
-                                       (qsci/with-interval-in-hours s (config/data-usage-api-interval))
-                                       (qsci/ignore-misfires s))))]
+                                       (qsci/with-interval-in-hours (config/data-usage-api-interval))
+                                       (qsci/ignore-misfires))))]
     (qs/schedule s job trigger)
     (log/debug (qs/get-trigger s (trigger-name basename)))))
 
