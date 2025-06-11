@@ -43,10 +43,10 @@
   [s]
     (let [basename (config/infosquito-job-basename)
            job     (qj/build
-                    (qj/of-type s infosquito-indexing)
-                    (qj/with-identity s (qj/key (job-name basename))))
+                    (qj/of-type infosquito-indexing)
+                    (qj/with-identity (qj/key (job-name basename))))
            trigger (qt/build
-                    (qt/with-identity s (qt/key (trigger-name basename)))
+                    (qt/with-identity (qt/key (trigger-name basename)))
                     (qt/with-schedule (qsc/schedule
                                         (qsc/weekly-on-day-and-hour-and-minute (config/infosquito-job-daynum) 23 0)
                                         (qsc/ignore-misfires s))))]
@@ -62,10 +62,10 @@
   [s]
   (let [basename (config/data-usage-api-job-basename)
         job      (qj/build
-                   (qj/of-type s data-usage-api-updates)
-                   (qj/with-identity s (qj/key (job-name basename))))
+                   (qj/of-type data-usage-api-updates)
+                   (qj/with-identity (qj/key (job-name basename))))
         trigger  (qt/build
-                   (qt/with-identity s (qt/key (trigger-name basename)))
+                   (qt/with-identity (qt/key (trigger-name basename)))
                    (qt/with-schedule (qsci/schedule
                                        (qsci/with-interval-in-hours s (config/data-usage-api-interval))
                                        (qsci/ignore-misfires s))))]
