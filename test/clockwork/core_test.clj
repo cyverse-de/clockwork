@@ -33,3 +33,10 @@
         (is (qs/started? s))
         (finally
           (qs/shutdown s))))))
+
+(deftest test-stop-scheduler-shuts-down-running-scheduler
+  (testing "stop-scheduler stops a running Quartz scheduler"
+    (let [s (#'core/init-scheduler)]
+      (is (qs/started? s) "precondition: scheduler is started")
+      (#'core/stop-scheduler s)
+      (is (qs/shutdown? s) "scheduler should be shut down"))))

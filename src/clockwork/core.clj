@@ -82,6 +82,12 @@
       (schedule-data-usage-api s))
     s))
 
+(defn- stop-scheduler
+  "Cleanly shuts down a Quartz scheduler, letting in-flight jobs finish."
+  [s]
+  (when s
+    (qs/shutdown s true)))
+
 (def svc-info
   {:desc "Scheduled jobs for the iPlant Discovery Environment"
    :app-name "clockwork"
@@ -106,4 +112,6 @@
         (ccli/exit 1 "The config file is not readable."))
       (log/info "clockwork startup")
       (config/load-config-from-file (:config options))
-      (init-scheduler))))
+      (let [scheduler (init-scheduler)]
+        (.addShutdownHook (Runtime/getRuntime)
+                          (Thread. ^Runnable #(stop-scheduler scheduler)))))))
