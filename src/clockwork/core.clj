@@ -73,13 +73,14 @@
     (log/debug (qs/get-trigger s (trigger-name basename)))))
 
 (defn- init-scheduler
-  "Initializes the scheduler."
+  "Initializes the scheduler and returns it."
   []
   (let [s (-> (qs/initialize) qs/start)]
     (when (config/infosquito-indexing-enabled)
       (schedule-infosquito-indexing s))
     (when (config/data-usage-api-indexing-enabled)
-      (schedule-data-usage-api s))))
+      (schedule-data-usage-api s))
+    s))
 
 (def svc-info
   {:desc "Scheduled jobs for the iPlant Discovery Environment"

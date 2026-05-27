@@ -1,6 +1,8 @@
 (ns clockwork.core-test
   (:use clojure.test)
-  (:require [clockwork.config :as config]))
+  (:require [clockwork.config :as config]
+            [clockwork.core :as core]
+            [clojurewerkz.quartzite.scheduler :as qs]))
 
 (defn with-empty-config [f]
   (require 'clockwork.config :reload)
@@ -22,3 +24,12 @@
     (is (= (config/infosquito-job-daynum) 1))
     (is (= (config/amqp-uri) "amqp://guest:guest@rabbit:5672/"))
     (is (= (config/exchange-name) "de"))))
+
+(deftest test-init-scheduler-returns-started-scheduler
+  (testing "init-scheduler returns a started Quartz scheduler"
+    (let [s (#'core/init-scheduler)]
+      (try
+        (is (some? s))
+        (is (qs/started? s))
+        (finally
+          (qs/shutdown s))))))
