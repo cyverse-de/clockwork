@@ -141,16 +141,42 @@ Captured locally for both old (current `main`) and new images, three trials each
 | Idle RSS | Run container 60s with a test config; `docker stats --no-stream --format '{{.MemUsage}}'` at t=60s. |
 | AOT cache hit (new only) | Start with `-Xlog:aot=info`; confirm cache load message in logs. |
 
-Results table to be filled in during implementation:
+Results (measured locally on macOS / Docker Desktop, arm64):
 
 | Metric | Baseline | With recipe | Δ |
 |---|---|---|---|
-| Image size | TBD | TBD | TBD |
-| Startup (s, median of 3) | TBD | TBD | TBD |
-| Idle RSS at 60s | TBD | TBD | TBD |
-| AOT cache loaded | n/a | TBD | — |
+| Image size | 1.06 GB | 633 MB | −427 MB (−40%) |
+| Cold startup (trial 1) | 3.28 s | 3.16 s | −0.12 s |
+| Warm startup (median of trials 2–3) | 0.72 s | 0.43 s | −0.29 s (−40%) |
+| Idle RSS at 60 s | 137.6 MiB | 117.5 MiB | −20.1 MiB (−15%) |
+| AOT cache loaded | n/a | yes | — |
 
-If startup or RSS don't improve materially, this is a signal to revisit before applying to other services.
+AOT cache load confirmation from `-Xlog:aot=info` at runtime:
+
+```
+[0.004s][info][aot] Opened AOT cache /usr/src/app/app.aot.
+[0.004s][info][aot] The AOT cache was created with UseCompressedOops = 1, UseCompressedClassPointers = 1, UseCompactObjectHeaders = 0
+```
+
+The cache loads 4 ms into JVM startup, before application classes are linked.
+
+### Implementation deviations from this spec
+
+Two discoveries during implementation:
+
+1. **Builder base image tag.** `clojure:temurin-25-lein-jammy` is not published on Docker Hub. The Dockerfile uses `clojure:temurin-25-lein-bookworm` instead (Debian 13 base, Temurin 25, Lein).
+
+2. **Runtime image must be `gcr.io/distroless/java25-debian13:debug`, not `:latest`.** The `:debug` tag ships the Temurin JDK; `:latest` ships the JRE. Their `lib/modules` differ in size, and the Leyden AOT cache rejects the runtime if the modules image differs from the one used during recording:
+
+   ```
+   [warning][aot] This file is not the one used while building the shared archive file:
+   '/usr/lib/jvm/temurin-25-jre-arm64/lib/modules', size has changed
+   [error][aot] Unable to map shared spaces
+   ```
+
+   Pinning both trainer and runtime to `:debug` guarantees compatibility but adds a small busybox layer to the runtime, which is why the recipe image lands at 633 MB rather than the ~250–350 MB the original spec anticipated. Other DE services applying this recipe should expect the same constraint until distroless ships a JRE variant whose modules match the JDK variant.
+
+If startup or RSS don't improve materially on other services, this is a signal to revisit before applying further.
 
 ## Risks
 
