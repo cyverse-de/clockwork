@@ -20,3 +20,4 @@ build.xml
 test2junit
 .clj-kondo
 .lsp
+/.worktrees

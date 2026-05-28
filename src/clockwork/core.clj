@@ -73,13 +73,20 @@
     (log/debug (qs/get-trigger s (trigger-name basename)))))
 
 (defn- init-scheduler
-  "Initializes the scheduler."
+  "Initializes the scheduler and returns it."
   []
   (let [s (-> (qs/initialize) qs/start)]
     (when (config/infosquito-indexing-enabled)
       (schedule-infosquito-indexing s))
     (when (config/data-usage-api-indexing-enabled)
-      (schedule-data-usage-api s))))
+      (schedule-data-usage-api s))
+    s))
+
+(defn- stop-scheduler
+  "Cleanly shuts down a Quartz scheduler, letting in-flight jobs finish."
+  [s]
+  (when s
+    (qs/shutdown s true)))
 
 (def svc-info
   {:desc "Scheduled jobs for the iPlant Discovery Environment"
@@ -105,4 +112,6 @@
         (ccli/exit 1 "The config file is not readable."))
       (log/info "clockwork startup")
       (config/load-config-from-file (:config options))
-      (init-scheduler))))
+      (let [scheduler (init-scheduler)]
+        (.addShutdownHook (Runtime/getRuntime)
+                          (Thread. ^Runnable #(stop-scheduler scheduler)))))))
