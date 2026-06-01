@@ -5,6 +5,7 @@ go 1.26
 require (
 	github.com/cyverse-de/messaging/v12 v12.0.2
 	github.com/magiconair/properties v1.8.10
+	github.com/rabbitmq/amqp091-go v1.11.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.9.4
 )
@@ -17,7 +18,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.3.1 // indirect
-	github.com/rabbitmq/amqp091-go v1.11.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect

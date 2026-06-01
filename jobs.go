@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cyverse-de/messaging/v12"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 )
@@ -16,6 +17,14 @@ import (
 const dataUsageKey = "index.usage.data"
 
 const messageBody = "Sent by clockwork"
+
+// publishingOpts matches the original Clojure service: a JSON content type with
+// transient delivery. The Clojure langohr publish set no delivery mode, which
+// defaults to transient, so messaging.JSONPublishingOpts (persistent) is not used.
+var publishingOpts = &messaging.PublishingOpts{
+	DeliveryMode: amqp.Transient,
+	ContentType:  "application/json",
+}
 
 // publisher is the subset of the messaging client that jobs depend on, so the
 // scheduler can be exercised with a fake in tests.
@@ -34,7 +43,7 @@ func publish(p publisher, key string) {
 		logrus.WithError(err).WithField("routing-key", key).Error("failed to encode AMQP message")
 		return
 	}
-	if err := p.PublishOpts(key, body, messaging.JSONPublishingOpts); err != nil {
+	if err := p.PublishOpts(key, body, publishingOpts); err != nil {
 		logrus.WithError(err).WithField("routing-key", key).
 			Error("failed to publish AMQP message; the broker may be unreachable")
 	}
