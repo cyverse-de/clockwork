@@ -1,0 +1,32 @@
+# Broker for the clockwork functional/parity tests. Only RabbitMQ runs here; the
+# clockwork container itself is started per-test by the harness (conftest.py) so
+# each test can supply its own config and observe a fresh startup.
+#
+#   docker compose up -d         # start the broker
+#   docker compose down -v       # stop it and drop volumes
+#
+# The built-in "guest" user is refused on non-loopback connections, which
+# includes both the compose network (clockwork -> rabbitmq) and the host ->
+# published-port path (the management API calls the harness makes). A defined
+# user avoids that, matching the de-database test stack.
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: clockwork-test-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: de
+      RABBITMQ_DEFAULT_PASS: de
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MGMT_PORT:-15672}:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+networks:
+  default:
+    name: clockwork-test-net
