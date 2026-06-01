@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -26,50 +25,13 @@ const drainTimeout = 25 * time.Second
 func main() {
 	configPath := flag.String("config", "/etc/iplant/de/clockwork.properties", "Path to the config file")
 	logLevel := flag.String("log-level", "info", "One of trace, debug, info, warn, error, fatal, or panic")
-	showVersion := flag.Bool("version", false, "Print the version number and exit")
 	flag.Parse()
-
-	if *showVersion {
-		fmt.Println(versionString())
-		return
-	}
 
 	setupLogging(*logLevel)
 
 	if err := run(*configPath); err != nil {
 		log.Fatal(err)
 	}
-}
-
-// versionString reports the build's VCS revision (with a -dirty suffix for an
-// uncommitted tree), falling back to the module version or "dev". It relies on
-// the build info Go records automatically, so no build-time injection is needed.
-func versionString() string {
-	info, ok := debug.ReadBuildInfo()
-	if !ok {
-		return "dev"
-	}
-	var revision, dirty string
-	for _, s := range info.Settings {
-		switch s.Key {
-		case "vcs.revision":
-			revision = s.Value
-		case "vcs.modified":
-			if s.Value == "true" {
-				dirty = "-dirty"
-			}
-		}
-	}
-	if revision != "" {
-		if len(revision) > 12 {
-			revision = revision[:12]
-		}
-		return revision + dirty
-	}
-	if v := info.Main.Version; v != "" && v != "(devel)" {
-		return v
-	}
-	return "dev"
 }
 
 func setupLogging(level string) {

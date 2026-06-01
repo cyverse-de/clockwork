@@ -50,7 +50,6 @@ $ docker run -d --name clockwork \
   `/etc/iplant/de/clockwork.properties`).
 - `--log-level` — one of `trace`, `debug`, `info`, `warn`, `error`, `fatal`, or
   `panic` (default `info`).
-- `--version` — print the version and exit.
 
 ## Configuration
 
