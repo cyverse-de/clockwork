@@ -2,9 +2,6 @@ FROM golang:1.26 AS builder
 
 ENV CGO_ENABLED=0
 
-ARG version=unknown
-ENV VERSION=$version
-
 WORKDIR /src/clockwork
 COPY . .
 RUN apt-get update && \

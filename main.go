@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -13,8 +14,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// version is overridden at build time via -ldflags "-X main.version=...".
-var version = "dev"
+// log stamps every entry with service=clockwork, matching the field the previous
+// logback configuration added and the convention used across the DE Go services.
+var log = logrus.WithField("service", "clockwork")
 
 // drainTimeout bounds how long shutdown waits for in-flight jobs to finish.
 // It is kept under the default Kubernetes terminationGracePeriodSeconds (30s)
@@ -28,37 +30,56 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Println(version)
+		fmt.Println(versionString())
 		return
 	}
 
 	setupLogging(*logLevel)
 
 	if err := run(*configPath); err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 	}
+}
+
+// versionString reports the build's VCS revision (with a -dirty suffix for an
+// uncommitted tree), falling back to the module version or "dev". It relies on
+// the build info Go records automatically, so no build-time injection is needed.
+func versionString() string {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return "dev"
+	}
+	var revision, dirty string
+	for _, s := range info.Settings {
+		switch s.Key {
+		case "vcs.revision":
+			revision = s.Value
+		case "vcs.modified":
+			if s.Value == "true" {
+				dirty = "-dirty"
+			}
+		}
+	}
+	if revision != "" {
+		if len(revision) > 12 {
+			revision = revision[:12]
+		}
+		return revision + dirty
+	}
+	if v := info.Main.Version; v != "" && v != "(devel)" {
+		return v
+	}
+	return "dev"
 }
 
 func setupLogging(level string) {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	lvl, err := logrus.ParseLevel(level)
 	if err != nil {
-		logrus.WithError(err).Warnf("invalid log level %q; defaulting to info", level)
+		log.WithError(err).Warnf("invalid log level %q; defaulting to info", level)
 		lvl = logrus.InfoLevel
 	}
 	logrus.SetLevel(lvl)
-	logrus.AddHook(serviceFieldHook{})
-}
-
-// serviceFieldHook stamps every log entry with service=clockwork, matching the
-// field the previous logback configuration added for the log pipeline.
-type serviceFieldHook struct{}
-
-func (serviceFieldHook) Levels() []logrus.Level { return logrus.AllLevels }
-
-func (serviceFieldHook) Fire(e *logrus.Entry) error {
-	e.Data["service"] = "clockwork"
-	return nil
 }
 
 func run(configPath string) error {
@@ -66,8 +87,7 @@ func run(configPath string) error {
 		return fmt.Errorf("config file %s is not accessible: %w", configPath, err)
 	}
 
-	logrus.Info("clockwork startup")
-
+	log.Info("clockwork startup")
 	cfg, err := LoadConfig(configPath)
 	if err != nil {
 		return err
@@ -100,12 +120,12 @@ func run(configPath string) error {
 	defer stop()
 	<-ctx.Done()
 
-	logrus.Info("shutdown requested; draining in-flight jobs")
+	log.Info("shutdown requested; draining in-flight jobs")
 	select {
 	case <-scheduler.Stop().Done():
-		logrus.Info("all in-flight jobs drained")
+		log.Info("all in-flight jobs drained")
 	case <-time.After(drainTimeout):
-		logrus.Warn("drain timed out; shutting down with jobs still running")
+		log.Warn("drain timed out; shutting down with jobs still running")
 	}
 
 	return nil

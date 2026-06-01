@@ -20,11 +20,14 @@ $ just test    # run the unit tests
 $ just lint    # run golangci-lint
 ```
 
-To build the container image:
+To build the container image locally:
 
 ```
-$ docker build --rm -t harbor.cyverse.org/de/clockwork:dev .
+$ docker build --rm -t clockwork .
 ```
+
+The published image is built and tagged by CI (skaffold, tagged by git commit); the
+local tag above is just for ad-hoc local runs.
 
 ## Usage
 
@@ -37,7 +40,7 @@ Run with a local broker:
 ```
 $ docker run -d --name clockwork \
     -v /path/to/config:/etc/iplant/de/clockwork.properties \
-    harbor.cyverse.org/de/clockwork:dev \
+    clockwork \
     --config /etc/iplant/de/clockwork.properties
 ```
 

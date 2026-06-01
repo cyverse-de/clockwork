@@ -40,11 +40,11 @@ func publish(p publisher, key string) {
 		"timestamp_ms": time.Now().UnixMilli(),
 	})
 	if err != nil {
-		logrus.WithError(err).WithField("routing-key", key).Error("failed to encode AMQP message")
+		log.WithError(err).WithField("routing-key", key).Error("failed to encode AMQP message")
 		return
 	}
 	if err := p.PublishOpts(key, body, publishingOpts); err != nil {
-		logrus.WithError(err).WithField("routing-key", key).
+		log.WithError(err).WithField("routing-key", key).
 			Error("failed to publish AMQP message; the broker may be unreachable")
 	}
 }
@@ -68,11 +68,11 @@ func dataUsageSpec(intervalHours int) string {
 type cronLogger struct{}
 
 func (cronLogger) Info(msg string, keysAndValues ...any) {
-	logrus.WithFields(cronFields(keysAndValues)).Info(msg)
+	log.WithFields(cronFields(keysAndValues)).Info(msg)
 }
 
 func (cronLogger) Error(err error, msg string, keysAndValues ...any) {
-	logrus.WithError(err).WithFields(cronFields(keysAndValues)).Error(msg)
+	log.WithError(err).WithFields(cronFields(keysAndValues)).Error(msg)
 }
 
 func cronFields(keysAndValues []any) logrus.Fields {
@@ -101,7 +101,7 @@ func buildScheduler(cfg *Config, p publisher) (*cron.Cron, error) {
 		}); err != nil {
 			return nil, fmt.Errorf("scheduling infosquito job %q: %w", cfg.InfosquitoBasename, err)
 		}
-		logrus.WithFields(logrus.Fields{"job": cfg.InfosquitoBasename, "spec": spec}).
+		log.WithFields(logrus.Fields{"job": cfg.InfosquitoBasename, "spec": spec}).
 			Info("scheduled infosquito indexing")
 	}
 
@@ -112,7 +112,7 @@ func buildScheduler(cfg *Config, p publisher) (*cron.Cron, error) {
 		}); err != nil {
 			return nil, fmt.Errorf("scheduling data-usage job %q: %w", cfg.DataUsageBasename, err)
 		}
-		logrus.WithFields(logrus.Fields{"job": cfg.DataUsageBasename, "spec": spec}).
+		log.WithFields(logrus.Fields{"job": cfg.DataUsageBasename, "spec": spec}).
 			Info("scheduled data-usage-api updates")
 	}
 
