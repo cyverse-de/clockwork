@@ -62,31 +62,58 @@ func dataUsageSpec(intervalHours int) string {
 	return fmt.Sprintf("@every %dh", intervalHours)
 }
 
+// cronLogger adapts cron's Logger interface to logrus so cron's own messages
+// (e.g. a job skipped because the previous run is still in flight) stay in the
+// structured JSON pipeline instead of going to stdout as plain text.
+type cronLogger struct{}
+
+func (cronLogger) Info(msg string, keysAndValues ...any) {
+	logrus.WithFields(cronFields(keysAndValues)).Info(msg)
+}
+
+func (cronLogger) Error(err error, msg string, keysAndValues ...any) {
+	logrus.WithError(err).WithFields(cronFields(keysAndValues)).Error(msg)
+}
+
+func cronFields(keysAndValues []any) logrus.Fields {
+	fields := make(logrus.Fields, len(keysAndValues)/2)
+	for i := 0; i+1 < len(keysAndValues); i += 2 {
+		if key, ok := keysAndValues[i].(string); ok {
+			fields[key] = keysAndValues[i+1]
+		}
+	}
+	return fields
+}
+
 // buildScheduler registers the enabled jobs on a new cron scheduler. Jobs are
 // skipped if a prior run is still in flight, matching the service's
 // drop-don't-backlog posture.
 func buildScheduler(cfg *Config, p publisher) (*cron.Cron, error) {
 	c := cron.New(
 		cron.WithLocation(time.Local),
-		cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)),
+		cron.WithChain(cron.SkipIfStillRunning(cronLogger{})),
 	)
 
 	if cfg.InfosquitoEnabled {
-		if _, err := c.AddFunc(infosquitoSpec(cfg.InfosquitoDayNum), func() {
+		spec := infosquitoSpec(cfg.InfosquitoDayNum)
+		if _, err := c.AddFunc(spec, func() {
 			publish(p, messaging.ReindexAllKey)
 		}); err != nil {
 			return nil, fmt.Errorf("scheduling infosquito job %q: %w", cfg.InfosquitoBasename, err)
 		}
-		logrus.WithField("job", cfg.InfosquitoBasename).Info("scheduled infosquito indexing")
+		logrus.WithFields(logrus.Fields{"job": cfg.InfosquitoBasename, "spec": spec}).
+			Info("scheduled infosquito indexing")
 	}
 
 	if cfg.DataUsageEnabled {
-		if _, err := c.AddFunc(dataUsageSpec(cfg.DataUsageInterval), func() {
+		spec := dataUsageSpec(cfg.DataUsageInterval)
+		if _, err := c.AddFunc(spec, func() {
 			publish(p, dataUsageKey)
 		}); err != nil {
 			return nil, fmt.Errorf("scheduling data-usage job %q: %w", cfg.DataUsageBasename, err)
 		}
-		logrus.WithField("job", cfg.DataUsageBasename).Info("scheduled data-usage-api updates")
+		logrus.WithFields(logrus.Fields{"job": cfg.DataUsageBasename, "spec": spec}).
+			Info("scheduled data-usage-api updates")
 	}
 
 	return c, nil

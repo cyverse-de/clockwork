@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"sync"
 	"testing"
 
@@ -14,12 +16,15 @@ func TestInfosquitoSpec(t *testing.T) {
 	}{
 		{1, "0 23 * * 0"}, // Sunday
 		{2, "0 23 * * 1"}, // Monday
+		{4, "0 23 * * 3"}, // Wednesday
 		{7, "0 23 * * 6"}, // Saturday
 	}
 	for _, tt := range tests {
-		if got := infosquitoSpec(tt.daynum); got != tt.want {
-			t.Errorf("infosquitoSpec(%d) = %q, want %q", tt.daynum, got, tt.want)
-		}
+		t.Run(fmt.Sprintf("daynum=%d", tt.daynum), func(t *testing.T) {
+			if got := infosquitoSpec(tt.daynum); got != tt.want {
+				t.Errorf("infosquitoSpec(%d) = %q, want %q", tt.daynum, got, tt.want)
+			}
+		})
 	}
 }
 
@@ -33,22 +38,26 @@ func TestDataUsageSpec(t *testing.T) {
 		{24, "@every 24h"},
 	}
 	for _, tt := range tests {
-		if got := dataUsageSpec(tt.interval); got != tt.want {
-			t.Errorf("dataUsageSpec(%d) = %q, want %q", tt.interval, got, tt.want)
-		}
+		t.Run(fmt.Sprintf("interval=%d", tt.interval), func(t *testing.T) {
+			if got := dataUsageSpec(tt.interval); got != tt.want {
+				t.Errorf("dataUsageSpec(%d) = %q, want %q", tt.interval, got, tt.want)
+			}
+		})
 	}
 }
 
-// fakePublisher records the routing keys it was asked to publish.
+// fakePublisher records the routing keys and bodies it was asked to publish.
 type fakePublisher struct {
-	mu   sync.Mutex
-	keys []string
+	mu     sync.Mutex
+	keys   []string
+	bodies [][]byte
 }
 
-func (f *fakePublisher) PublishOpts(key string, _ []byte, _ *messaging.PublishingOpts) error {
+func (f *fakePublisher) PublishOpts(key string, body []byte, _ *messaging.PublishingOpts) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.keys = append(f.keys, key)
+	f.bodies = append(f.bodies, body)
 	return nil
 }
 
@@ -84,10 +93,24 @@ func TestBuildSchedulerRegistersEnabledJobs(t *testing.T) {
 	}
 }
 
-func TestPublishSendsRoutingKey(t *testing.T) {
+func TestPublishSendsRoutingKeyAndBody(t *testing.T) {
 	fp := &fakePublisher{}
 	publish(fp, messaging.ReindexAllKey)
 	if len(fp.keys) != 1 || fp.keys[0] != messaging.ReindexAllKey {
-		t.Errorf("expected one publish of %q, got %v", messaging.ReindexAllKey, fp.keys)
+		t.Fatalf("expected one publish of %q, got %v", messaging.ReindexAllKey, fp.keys)
+	}
+
+	var body struct {
+		Message     string `json:"message"`
+		TimestampMS int64  `json:"timestamp_ms"`
+	}
+	if err := json.Unmarshal(fp.bodies[0], &body); err != nil {
+		t.Fatalf("published body is not valid JSON: %v", err)
+	}
+	if body.Message != messageBody {
+		t.Errorf("message = %q, want %q", body.Message, messageBody)
+	}
+	if body.TimestampMS <= 0 {
+		t.Errorf("timestamp_ms = %d, want a positive epoch-millis value", body.TimestampMS)
 	}
 }

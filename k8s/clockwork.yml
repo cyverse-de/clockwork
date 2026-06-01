@@ -32,6 +32,13 @@ spec:
       containers:
         - name: clockwork
           image: harbor.cyverse.org/de/clockwork
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           resources:
             requests:
               cpu: "10m"

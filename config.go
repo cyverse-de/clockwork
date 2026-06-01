@@ -2,9 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/magiconair/properties"
 )
+
+// amqpURIEnvVar lets the credential-bearing AMQP URI be supplied via the
+// environment (e.g. direnv for local runs) instead of the config file. It takes
+// precedence over the config-file value.
+const amqpURIEnvVar = "CLOCKWORK_AMQP_URI"
 
 // Config holds the settings clockwork needs to schedule its jobs and publish
 // AMQP messages. It mirrors the keys read by the original Clojure service.
@@ -46,7 +52,7 @@ func LoadConfig(path string) (*Config, error) {
 		DataUsageBasename:  p.GetString("clockwork.jobs.data-usage-api.basename", "data-usage.1"),
 		DataUsageInterval:  p.GetInt("clockwork.jobs.data-usage-api.interval", 3),
 		DataUsageEnabled:   p.GetBool("clockwork.jobs.data-usage-api.indexing-enabled", true),
-		AMQPURI:            p.GetString("clockwork.amqp.uri", "amqp://guest:guest@rabbit:5672/"),
+		AMQPURI:            amqpURI(p),
 		ExchangeName:       p.GetString("clockwork.amqp.exchange.name", "de"),
 	}
 
@@ -57,10 +63,25 @@ func LoadConfig(path string) (*Config, error) {
 	return cfg, nil
 }
 
-// validate rejects values that would produce an invalid schedule. The original
-// Clojure service performed no such check and would fail later at trigger
-// registration; failing fast here gives a clearer error.
+// amqpURI resolves the AMQP connection URI, preferring the environment variable
+// so the credential-bearing URI need not live in the config file.
+func amqpURI(p *properties.Properties) string {
+	if uri := os.Getenv(amqpURIEnvVar); uri != "" {
+		return uri
+	}
+	return p.GetString("clockwork.amqp.uri", "")
+}
+
+// validate rejects values that would produce an invalid schedule or connection.
+// The original Clojure service performed no such checks and would fail later at
+// trigger registration or first publish; failing fast here gives a clearer error.
 func (c *Config) validate() error {
+	if c.AMQPURI == "" {
+		return &ConfigError{
+			Key:     "clockwork.amqp.uri",
+			Message: fmt.Sprintf("required: set it in the config file or the %s environment variable", amqpURIEnvVar),
+		}
+	}
 	if c.InfosquitoDayNum < 1 || c.InfosquitoDayNum > 7 {
 		return &ConfigError{
 			Key:     "clockwork.jobs.infosquito.daynum",

@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+const testAMQPURI = "amqp://guest:guest@rabbit:5672/"
+
 func writeConfig(t *testing.T, contents string) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "clockwork.properties")
@@ -17,7 +19,9 @@ func writeConfig(t *testing.T, contents string) string {
 }
 
 func TestLoadConfigDefaults(t *testing.T) {
-	cfg, err := LoadConfig(writeConfig(t, ""))
+	t.Setenv(amqpURIEnvVar, "")
+	// The AMQP URI is required, so it is the one key the defaults case must set.
+	cfg, err := LoadConfig(writeConfig(t, "clockwork.amqp.uri="+testAMQPURI+"\n"))
 	if err != nil {
 		t.Fatalf("LoadConfig returned error: %v", err)
 	}
@@ -29,7 +33,7 @@ func TestLoadConfigDefaults(t *testing.T) {
 		DataUsageBasename:  "data-usage.1",
 		DataUsageInterval:  3,
 		DataUsageEnabled:   true,
-		AMQPURI:            "amqp://guest:guest@rabbit:5672/",
+		AMQPURI:            testAMQPURI,
 		ExchangeName:       "de",
 	}
 	if *cfg != want {
@@ -38,6 +42,7 @@ func TestLoadConfigDefaults(t *testing.T) {
 }
 
 func TestLoadConfigOverrides(t *testing.T) {
+	t.Setenv(amqpURIEnvVar, "")
 	contents := `clockwork.jobs.infosquito.basename=indexing.2
 clockwork.jobs.infosquito.daynum=5
 clockwork.jobs.infosquito.indexing-enabled=false
@@ -68,22 +73,25 @@ clockwork.amqp.exchange.name=custom
 }
 
 func TestLoadConfigValidation(t *testing.T) {
+	uriLine := "clockwork.amqp.uri=" + testAMQPURI + "\n"
 	tests := []struct {
 		name    string
 		config  string
 		wantErr bool
 	}{
-		{"daynum too low", "clockwork.jobs.infosquito.daynum=0", true},
-		{"daynum too high", "clockwork.jobs.infosquito.daynum=8", true},
-		{"daynum lower bound", "clockwork.jobs.infosquito.daynum=1", false},
-		{"daynum upper bound", "clockwork.jobs.infosquito.daynum=7", false},
-		{"interval zero", "clockwork.jobs.data-usage-api.interval=0", true},
-		{"interval negative", "clockwork.jobs.data-usage-api.interval=-1", true},
-		{"interval one", "clockwork.jobs.data-usage-api.interval=1", false},
+		{"missing amqp uri", "", true},
+		{"daynum too low", uriLine + "clockwork.jobs.infosquito.daynum=0", true},
+		{"daynum too high", uriLine + "clockwork.jobs.infosquito.daynum=8", true},
+		{"daynum lower bound", uriLine + "clockwork.jobs.infosquito.daynum=1", false},
+		{"daynum upper bound", uriLine + "clockwork.jobs.infosquito.daynum=7", false},
+		{"interval zero", uriLine + "clockwork.jobs.data-usage-api.interval=0", true},
+		{"interval negative", uriLine + "clockwork.jobs.data-usage-api.interval=-1", true},
+		{"interval one", uriLine + "clockwork.jobs.data-usage-api.interval=1", false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv(amqpURIEnvVar, "")
 			_, err := LoadConfig(writeConfig(t, tt.config))
 			if tt.wantErr {
 				var cfgErr *ConfigError
@@ -94,5 +102,20 @@ func TestLoadConfigValidation(t *testing.T) {
 				t.Errorf("unexpected error: %v", err)
 			}
 		})
+	}
+}
+
+func TestAMQPURIFromEnv(t *testing.T) {
+	const envURI = "amqp://env:env@broker:5672/%2Fprod%2Fde"
+	t.Setenv(amqpURIEnvVar, envURI)
+
+	// The env var takes precedence over the config-file value, and also satisfies
+	// the requirement when the file omits the URI entirely.
+	cfg, err := LoadConfig(writeConfig(t, "clockwork.amqp.uri=amqp://file:file@rabbit:5672/\n"))
+	if err != nil {
+		t.Fatalf("LoadConfig returned error: %v", err)
+	}
+	if cfg.AMQPURI != envURI {
+		t.Errorf("AMQPURI = %q, want the env value %q", cfg.AMQPURI, envURI)
 	}
 }
