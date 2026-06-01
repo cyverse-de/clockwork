@@ -1,74 +1,22 @@
-# syntax=docker/dockerfile:1.7
+FROM golang:1.26 AS builder
 
-#####################
-# Stage 1: builder
-#####################
-FROM clojure:temurin-25-lein-bookworm AS builder
-WORKDIR /usr/src/app
+ENV CGO_ENABLED=0
 
+WORKDIR /src/clockwork
+COPY . .
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends just && \
+    rm -rf /var/lib/apt/lists/* && \
+    just test && \
+    just build
 
-COPY project.clj /usr/src/app/
-RUN lein deps
+FROM gcr.io/distroless/static-debian13:nonroot
 
-COPY . /usr/src/app
-RUN lein uberjar && cp target/clockwork-standalone.jar /usr/src/app/clockwork-standalone.jar
+WORKDIR /app
 
-#####################
-# Stage 2: AOT trainer
-#####################
-# Use the same OpenJDK build as the runtime stage so the AOT cache is
-# guaranteed compatible. The :debug tag adds busybox (sh + kill).
-FROM gcr.io/distroless/java25-debian13:debug AS trainer
-WORKDIR /usr/src/app
+COPY --from=builder /src/clockwork/clockwork /bin/clockwork
 
-COPY --from=builder /usr/src/app/clockwork-standalone.jar ./
-COPY conf/training/clockwork.properties ./training-config.properties
-
-# Step 1: record an AOT configuration by running the app briefly. The SIGTERM
-# shutdown hook makes this exit cleanly.
-RUN ["/busybox/sh", "-c", "\
-    /usr/bin/java \
-      -XX:AOTMode=record \
-      -XX:AOTConfiguration=app.aotconf \
-      -cp clockwork-standalone.jar clockwork.core \
-      --config training-config.properties & \
-    PID=$!; sleep 5; kill -TERM $PID; wait $PID || true \
-"]
-
-# Step 2: create the AOT cache from the recorded configuration.
-RUN ["/busybox/sh", "-c", "\
-    /usr/bin/java \
-      -XX:AOTMode=create \
-      -XX:AOTConfiguration=app.aotconf \
-      -XX:AOTCache=app.aot \
-      -cp clockwork-standalone.jar clockwork.core \
-"]
-
-#####################
-# Stage 3: runtime
-#####################
-# NOTE: We use the :debug tag here (not :latest) because :latest ships the JRE
-# build of Temurin 25 while :debug ships the JDK build, and their lib/modules
-# files differ in size — which makes an AOT cache trained on one incompatible
-# with the other ("Unable to map shared spaces"). Both stages must use the
-# same OpenJDK build for the cache to load.
-FROM gcr.io/distroless/java25-debian13:debug
-WORKDIR /usr/src/app
-
-COPY --from=builder /usr/src/app/clockwork-standalone.jar ./
-COPY --from=builder /usr/src/app/conf/main/logback.xml ./logback.xml
-COPY --from=trainer /usr/src/app/app.aot ./app.aot
-
-ENTRYPOINT ["/usr/bin/java", \
-            "-XX:AOTMode=on", \
-            "-XX:AOTCache=/usr/src/app/app.aot", \
-            "-Dorg.terracotta.quartz.skipUpdateCheck=true", \
-            "-Dlogback.configurationFile=/usr/src/app/logback.xml", \
-            "-cp", "/usr/src/app/clockwork-standalone.jar", \
-            "clockwork.core"]
+ENTRYPOINT ["clockwork"]
 CMD ["--help"]
 
 ARG git_commit=unknown
