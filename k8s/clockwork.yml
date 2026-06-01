@@ -35,11 +35,11 @@ spec:
           resources:
             requests:
               cpu: "10m"
-              memory: "512Mi"
+              memory: "64Mi"
               ephemeral-storage: "1Gi"
             limits:
-              cpu: "650m"
-              memory: "2Gi"
+              cpu: "100m"
+              memory: "128Mi"
               ephemeral-storage: "1Gi"
           args:
             - --config
@@ -54,19 +54,4 @@ spec:
                 configMapKeyRef:
                   name: timezone
                   key: timezone
-            - name: JAVA_TOOL_OPTIONS
-              valueFrom:
-                configMapKeyRef:
-                  name: java-tool-options
-                  key: low
-            - name: OTEL_TRACES_EXPORTER
-              valueFrom:
-                secretKeyRef:
-                  name: configs
-                  key: OTEL_TRACES_EXPORTER
-            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                  name: configs
-                  key: OTEL_EXPORTER_JAEGER_ENDPOINT
       restartPolicy: Always

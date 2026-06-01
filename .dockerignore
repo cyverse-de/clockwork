@@ -1,21 +1,17 @@
-/target
-/lib
-/classes
-/checkouts
-pom.xml
-*.jar
-*.class
-.lein-deps-sum
-.lein-failures
-.lein-plugins
+# The compiled binary is rebuilt inside the image
+/clockwork
+
+# Test and coverage output
+*.out
+*.test
+
+# Editor and VCS cruft
 *~
 \#*
 .\#*
-.project
-.classpath
-.settings
-/bin
-build.xml
-test2junit
+.git
+.worktrees
+
+# Not needed in the build context
 Jenkinsfile
 service.properties
