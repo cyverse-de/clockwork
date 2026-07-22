@@ -53,8 +53,8 @@ $ docker run -d --name clockwork \
 
 ## Configuration
 
-Clockwork reads a Java-style `.properties` file. All keys are optional and fall
-back to the defaults below.
+Clockwork reads a Java-style `.properties` file. `clockwork.amqp.uri` is
+required; every other key is optional and falls back to the default below.
 
 | Key | Default | Description |
 |---|---|---|
@@ -64,5 +64,9 @@ back to the defaults below.
 | `clockwork.jobs.data-usage-api.basename` | `data-usage.1` | Identifier used in logs for the data-usage job. |
 | `clockwork.jobs.data-usage-api.interval` | `3` | Interval in hours between data-usage updates. |
 | `clockwork.jobs.data-usage-api.indexing-enabled` | `true` | Whether the data-usage job is scheduled. |
-| `clockwork.amqp.uri` | `amqp://guest:guest@rabbit:5672/` | AMQP connection URI. |
+| `clockwork.amqp.uri` | _(required)_ | AMQP connection URI, e.g. `amqp://user:pass@rabbit:5672/vhost`. |
 | `clockwork.amqp.exchange.name` | `de` | Name of the AMQP exchange to publish to. |
+
+The AMQP URI can also be supplied via the `CLOCKWORK_AMQP_URI` environment
+variable, which takes precedence over the config-file value and keeps the
+credential-bearing URI out of the config file.

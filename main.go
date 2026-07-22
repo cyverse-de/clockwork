@@ -81,6 +81,9 @@ func run(configPath string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	<-ctx.Done()
+	// Restore default signal handling so a second signal during the drain
+	// terminates the process immediately instead of being swallowed.
+	stop()
 
 	log.Info("shutdown requested; draining in-flight jobs")
 	select {

@@ -46,7 +46,9 @@ func publish(p publisher, key string) {
 	if err := p.PublishOpts(key, body, publishingOpts); err != nil {
 		log.WithError(err).WithField("routing-key", key).
 			Error("failed to publish AMQP message; the broker may be unreachable")
+		return
 	}
+	log.WithField("routing-key", key).Info("published AMQP message")
 }
 
 // infosquitoSpec builds the weekly cron spec for the infosquito job. Quartz

@@ -2,13 +2,17 @@ FROM golang:1.26 AS builder
 
 ENV CGO_ENABLED=0
 
-WORKDIR /src/clockwork
-COPY . .
 RUN apt-get update && \
     apt-get install -y --no-install-recommends just && \
-    rm -rf /var/lib/apt/lists/* && \
-    just test && \
-    just build
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src/clockwork
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN just test && just build
 
 FROM gcr.io/distroless/static-debian13:nonroot
 

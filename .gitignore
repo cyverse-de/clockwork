@@ -5,6 +5,10 @@
 *.out
 *.test
 
+# Python bytecode and run output from the functional-test parity harness
+__pycache__/
+/functional-tests/artifacts/
+
 *~
 \#*
 .\#*
