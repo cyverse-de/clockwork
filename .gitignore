@@ -1,23 +1,15 @@
-/target
-/lib
-/classes
-/checkouts
-pom.xml
-*.jar
-*.class
-.eastwood
-.lein-deps-sum
-.lein-failures
-.lein-plugins
+# Compiled binary (matches the module/repo name)
+/clockwork
+
+# Test and coverage output
+*.out
+*.test
+
+# Python bytecode and run output from the functional-test parity harness
+__pycache__/
+/functional-tests/artifacts/
+
 *~
 \#*
 .\#*
-.project
-.classpath
-.settings
-/bin
-build.xml
-test2junit
-.clj-kondo
-.lsp
 /.worktrees

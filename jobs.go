@@ -1,0 +1,122 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+
+	"github.com/cyverse-de/messaging/v12"
+	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/robfig/cron/v3"
+	"github.com/sirupsen/logrus"
+)
+
+// dataUsageKey is the routing key used to trigger data-usage-api recalculation.
+// The messaging library only defines a constant for the infosquito key
+// (messaging.ReindexAllKey), so this one is defined locally.
+const dataUsageKey = "index.usage.data"
+
+const messageBody = "Sent by clockwork"
+
+// publishingOpts matches the original Clojure service: a JSON content type with
+// transient delivery. The Clojure langohr publish set no delivery mode, which
+// defaults to transient, so messaging.JSONPublishingOpts (persistent) is not used.
+var publishingOpts = &messaging.PublishingOpts{
+	DeliveryMode: amqp.Transient,
+	ContentType:  "application/json",
+}
+
+// publisher is the subset of the messaging client that jobs depend on, so the
+// scheduler can be exercised with a fake in tests.
+type publisher interface {
+	PublishOpts(key string, body []byte, opts *messaging.PublishingOpts) error
+}
+
+// publish sends the same JSON envelope the Clojure service used:
+// {"message": ..., "timestamp_ms": <epoch millis>} with a JSON content type.
+func publish(p publisher, key string) {
+	body, err := json.Marshal(map[string]any{
+		"message":      messageBody,
+		"timestamp_ms": time.Now().UnixMilli(),
+	})
+	if err != nil {
+		log.WithError(err).WithField("routing-key", key).Error("failed to encode AMQP message")
+		return
+	}
+	if err := p.PublishOpts(key, body, publishingOpts); err != nil {
+		log.WithError(err).WithField("routing-key", key).
+			Error("failed to publish AMQP message; the broker may be unreachable")
+		return
+	}
+	log.WithField("routing-key", key).Info("published AMQP message")
+}
+
+// infosquitoSpec builds the weekly cron spec for the infosquito job. Quartz
+// numbers days 1=Sunday..7=Saturday; cron uses 0=Sunday..6=Saturday, so the
+// day number is shifted down by one. The job fires at 23:00, matching the
+// original weekly-on-day-and-hour-and-minute schedule.
+func infosquitoSpec(daynum int) string {
+	return fmt.Sprintf("0 23 * * %d", daynum-1)
+}
+
+// dataUsageSpec builds the interval spec for the data-usage job.
+func dataUsageSpec(intervalHours int) string {
+	return fmt.Sprintf("@every %dh", intervalHours)
+}
+
+// cronLogger adapts cron's Logger interface to logrus so cron's own messages
+// (e.g. a job skipped because the previous run is still in flight) stay in the
+// structured JSON pipeline instead of going to stdout as plain text.
+type cronLogger struct{}
+
+func (cronLogger) Info(msg string, keysAndValues ...any) {
+	log.WithFields(cronFields(keysAndValues)).Info(msg)
+}
+
+func (cronLogger) Error(err error, msg string, keysAndValues ...any) {
+	log.WithError(err).WithFields(cronFields(keysAndValues)).Error(msg)
+}
+
+func cronFields(keysAndValues []any) logrus.Fields {
+	fields := make(logrus.Fields, len(keysAndValues)/2)
+	for i := 0; i+1 < len(keysAndValues); i += 2 {
+		if key, ok := keysAndValues[i].(string); ok {
+			fields[key] = keysAndValues[i+1]
+		}
+	}
+	return fields
+}
+
+// buildScheduler registers the enabled jobs on a new cron scheduler. Jobs are
+// skipped if a prior run is still in flight, matching the service's
+// drop-don't-backlog posture.
+func buildScheduler(cfg *Config, p publisher) (*cron.Cron, error) {
+	c := cron.New(
+		cron.WithLocation(time.Local),
+		cron.WithChain(cron.SkipIfStillRunning(cronLogger{})),
+	)
+
+	if cfg.InfosquitoEnabled {
+		spec := infosquitoSpec(cfg.InfosquitoDayNum)
+		if _, err := c.AddFunc(spec, func() {
+			publish(p, messaging.ReindexAllKey)
+		}); err != nil {
+			return nil, fmt.Errorf("scheduling infosquito job %q: %w", cfg.InfosquitoBasename, err)
+		}
+		log.WithFields(logrus.Fields{"job": cfg.InfosquitoBasename, "spec": spec}).
+			Info("scheduled infosquito indexing")
+	}
+
+	if cfg.DataUsageEnabled {
+		spec := dataUsageSpec(cfg.DataUsageInterval)
+		if _, err := c.AddFunc(spec, func() {
+			publish(p, dataUsageKey)
+		}); err != nil {
+			return nil, fmt.Errorf("scheduling data-usage job %q: %w", cfg.DataUsageBasename, err)
+		}
+		log.WithFields(logrus.Fields{"job": cfg.DataUsageBasename, "spec": spec}).
+			Info("scheduled data-usage-api updates")
+	}
+
+	return c, nil
+}
